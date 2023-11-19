@@ -12,12 +12,21 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Retrieve URL from GitHub
+        id: get-url
+        run: |
+          URL=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                    https://api.github.com/repos/AmanaOA/AppURL/contents/url.txt \
+                    | jq -r '.content' \
+                    | base64 --decode)
+          echo "URL from GitHub: $URL"
+        shell: bash
         
       - name: Run Dastardly Action Step
         continue-on-error: true                        # This allows subsequent steps to run even if this step fails
         uses: PortSwigger/dastardly-github-action@main
         with:
-          target-url: ${{ secrets.URL_FROM_JAVA_APP }}
+          target-url: ${{ steps.get-url.outputs.URL }}
           env:
           YOUR_API_KEY: ${{ secrets.YOUR_API_KEY }}
     
